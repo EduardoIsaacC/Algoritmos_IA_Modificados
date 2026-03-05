@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chat con Adquisición del Conocimiento</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    .chat { border: 1px solid #ddd; border-radius: 10px; padding: 12px; height: 420px; overflow-y: auto; background: #fafafa; }
+    .row { margin: 10px 0; display: flex; }
+    .bot { justify-content: flex-start; }
+    .user { justify-content: flex-end; }
+    .bubble { max-width: 75%; padding: 10px 12px; border-radius: 12px; white-space: pre-wrap; }
+    .bot .bubble { background: #ffffff; border: 1px solid #e6e6e6; }
+    .user .bubble { background: #dff1ff; border: 1px solid #c6e6ff; }
+    .bar { display: flex; gap: 8px; margin-top: 12px; }
+    input { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #ccc; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; background: #fff; }
+    .quick { margin: 12px 0; display: flex; gap: 8px; flex-wrap: wrap; }
+    .tag { font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h2>Chat con Adquisición del Conocimiento</h2>
+  <p class="tag">Si no hay match perfecto, el bot te pide la respuesta correcta y la guarda en SQLite.</p>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="quick">
+    <button onclick="sendQuick('Hola')">Hola</button>
+    <button onclick="sendQuick('¿Cómo estás?')">¿Cómo estás?</button>
+    <button onclick="sendQuick('¿De qué te gustaría hablar?')">¿De qué te gustaría hablar?</button>
+  </div>
+
+  <div class="bar">
+    <input id="msg" placeholder="Escribe tu mensaje..." autocomplete="off" />
+    <button onclick="send()">Enviar</button>
+  </div>
+
+<script>
+  const chat = document.getElementById("chat");
+  const msg = document.getElementById("msg");
+
+  // Estado para aprendizaje
+  let esperandoRespuestaPara = null;
+
+  function addBubble(text, who) {
+    const row = document.createElement("div");
+    row.className = "row " + who;
+    const b = document.createElement("div");
+    b.className = "bubble";
+    b.textContent = text;
+    row.appendChild(b);
+    chat.appendChild(row);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // 3 líneas precargadas (como pide la consigna)
+  addBubble("Hola 👋", "bot");
+  addBubble("¿Cómo estás?", "bot");
+  addBubble("¿De qué te gustaría hablar?", "bot");
+
+  async function apiChat(userText) {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: userText })
+    });
+    return await res.json();
+  }
+
+  async function apiTeach(question, answer) {
+    const res = await fetch("/api/teach", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, answer })
+    });
+    return await res.json();
+  }
+
+  async function send() {
+    const text = msg.value.trim();
+    if (!text) return;
+
+    addBubble(text, "user");
+    msg.value = "";
+
+    // Si estamos en modo "enseñanza", este texto se guarda como respuesta
+    if (esperandoRespuestaPara) {
+      const learned = await apiTeach(esperandoRespuestaPara, text);
+      if (learned.ok) {
+        addBubble("✅ Perfecto. Ya lo guardé. Pregúntamelo de nuevo cuando quieras.", "bot");
+      } else {
+        addBubble("❌ No pude guardarlo: " + learned.msg, "bot");
+      }
+      esperandoRespuestaPara = null;
+      return;
+    }
+
+    // Chat normal
+    const data = await apiChat(text);
+    addBubble(data.reply, "bot");
+
+    if (data.need_training) {
+      esperandoRespuestaPara = data.question_to_learn; // guardamos la pregunta original
+    }
+  }
+
+  function sendQuick(text) {
+    msg.value = text;
+    send();
+  }
+
+  msg.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") send();
+  });
+</script>
+</body>
+</html>

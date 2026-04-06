@@ -1,0 +1,28 @@
+{
+    "texto": "¿Es un mamífero?",
+    "es_hoja": false,
+    "si": {
+        "texto": "¿Es un primate?",
+        "es_hoja": false,
+        "si": {
+            "texto": "Mono",
+            "es_hoja": true
+        },
+        "no": {
+            "texto": "Perro",
+            "es_hoja": true
+        }
+    },
+    "no": {
+        "texto": "¿Existen diferentes especies de ese mismo animal?",
+        "es_hoja": false,
+        "si": {
+            "texto": "Tiburon",
+            "es_hoja": true
+        },
+        "no": {
+            "texto": "Cocodrilo",
+            "es_hoja": true
+        }
+    }
+}

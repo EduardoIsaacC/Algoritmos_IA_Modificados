@@ -1,0 +1,23 @@
+{
+    "Allay": {
+        "vuela": "si",
+        "overworld": "si",
+        "hostil": "no",
+        "decorativo": "no",
+        "aparece_en_estructura": "si"
+    },
+    "Murciélago": {
+        "vuela": "si",
+        "overworld": "si",
+        "hostil": "no",
+        "decorativo": "si",
+        "aparece_en_estructura": "no"
+    },
+    "Steve": {
+        "vuela": "no",
+        "overworld": "si",
+        "hostil": "no",
+        "decorativo": "no",
+        "aparece_en_estructura": "no"
+    }
+}

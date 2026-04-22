@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Adivina Quién - Simulador</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #2c3e50;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        #juego-contenedor {
+            background-color: #34495e;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 { color: #f1c40f; }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            margin: 10px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #2980b9; }
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+        }
+        #area-aprender { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="juego-contenedor">
+        <h1>Adivina Quién</h1>
+        <h3 style="color: #ecf0f1;">Tema: Animales</h3>
+        
+        <div id="area-preguntas">
+            <h2 id="texto-principal">Piensa en un animal...</h2>
+            <button id="btn-si" onclick="responder('si')">Sí</button>
+            <button id="btn-no" onclick="responder('no')">No</button>
+            <button id="btn-iniciar" onclick="iniciarJuego()" style="display:none;">Empezar a jugar</button>
+        </div>
+
+        <div id="area-aprender">
+            <h2 style="color: #e74c3c;">¡Me ganaste! Ayúdame a aprender.</h2>
+            <input type="text" id="input-animal" placeholder="¿En qué animal estabas pensando? (ej. Gato)">
+            <input type="text" id="input-pregunta" placeholder="Escribe una pregunta de Sí/No para diferenciarlo">
+            <p>Para tu animal, ¿la respuesta a esta pregunta es Sí o No?</p>
+            <button style="background-color: #2ecc71;" onclick="aprender('si')">Es Sí</button>
+            <button style="background-color: #e74c3c;" onclick="aprender('no')">Es No</button>
+        </div>
+    </div>
+
+    <script>
+        // 1. Cargar el conocimiento de la memoria del navegador o crear uno básico
+        let conocimientoInicial = {
+            pregunta: "¿Es un mamífero?",
+            si: "Perro",
+            no: "Cocodrilo"
+        };
+        
+        let cerebro = JSON.parse(localStorage.getItem("cerebroAnimales")) || conocimientoInicial;
+        
+        let nodoActual = cerebro;
+        let nodoPadre = null;
+        let rutaTomada = ""; // Guarda si tomamos el camino de 'si' o 'no'
+        let animalAdivinado = "";
+
+        // Referencias a la pantalla
+        const textoPrincipal = document.getElementById("texto-principal");
+        const btnSi = document.getElementById("btn-si");
+        const btnNo = document.getElementById("btn-no");
+        const btnIniciar = document.getElementById("btn-iniciar");
+        const areaPreguntas = document.getElementById("area-preguntas");
+        const areaAprender = document.getElementById("area-aprender");
+
+        function iniciarJuego() {
+            nodoActual = cerebro;
+            nodoPadre = null;
+            areaAprender.style.display = "none";
+            areaPreguntas.style.display = "block";
+            btnSi.style.display = "inline-block";
+            btnNo.style.display = "inline-block";
+            btnIniciar.style.display = "none";
+            hacerPregunta();
+        }
+
+        function hacerPregunta() {
+            // Si es un objeto, es una pregunta. Si es un texto, es el animal final.
+            if (typeof nodoActual === "object") {
+                textoPrincipal.innerText = nodoActual.pregunta;
+            } else {
+                animalAdivinado = nodoActual;
+                textoPrincipal.innerText = `¿Estás pensando en un(a) ${animalAdivinado}?`;
+            }
+        }
+
+        function responder(respuesta) {
+            if (typeof nodoActual === "object") {
+                // Navegamos por el árbol
+                nodoPadre = nodoActual;
+                rutaTomada = respuesta;
+                nodoActual = nodoActual[respuesta];
+                hacerPregunta();
+            } else {
+                // Estábamos intentando adivinar el animal final
+                if (respuesta === 'si') {
+                    textoPrincipal.innerText = "¡Jaja! ¡Te he ganado! 😎";
+                    terminarPartida();
+                } else {
+                    // Si fallamos, activamos el modo aprender
+                    areaPreguntas.style.display = "none";
+                    areaAprender.style.display = "block";
+                    document.getElementById("input-animal").value = "";
+                    document.getElementById("input-pregunta").value = "";
+                }
+            }
+        }
+
+        function aprender(respuestaNuevoAnimal) {
+            let nuevoAnimal = document.getElementById("input-animal").value.trim();
+            let nuevaPregunta = document.getElementById("input-pregunta").value.trim();
+
+            if (!nuevoAnimal || !nuevaPregunta) {
+                alert("Por favor, llena ambos campos para que pueda aprender.");
+                return;
+            }
+
+            // Asegurar signos de interrogación
+            if (!nuevaPregunta.startsWith("¿")) nuevaPregunta = "¿" + nuevaPregunta;
+            if (!nuevaPregunta.endsWith("?")) nuevaPregunta += "?";
+
+            // Modificamos el nodo padre para agregar la nueva pregunta y los dos animales
+            if (respuestaNuevoAnimal === 'si') {
+                nodoPadre[rutaTomada] = { pregunta: nuevaPregunta, si: nuevoAnimal, no: animalAdivinado };
+            } else {
+                nodoPadre[rutaTomada] = { pregunta: nuevaPregunta, si: animalAdivinado, no: nuevoAnimal };
+            }
+
+            // Guardar en la memoria del navegador
+            localStorage.setItem("cerebroAnimales", JSON.stringify(cerebro));
+
+            alert("¡Excelente! He guardado esto en mi base de datos.");
+            iniciarJuego();
+        }
+
+        function terminarPartida() {
+            btnSi.style.display = "none";
+            btnNo.style.display = "none";
+            btnIniciar.style.display = "inline-block";
+        }
+
+        // Arrancar el juego al cargar la página
+        iniciarJuego();
+    </script>
+</body>
+</html>

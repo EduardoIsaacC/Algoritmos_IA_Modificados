@@ -193,7 +193,7 @@ const armas = ["Candelabro", "Daga", "Tubo de Plomo", "Revólver", "Cuerda"];
 
 let crimenReal = {};
 let distribucionArmas = {};
-let timerId = null; // Control para evitar parpadeos de pantalla
+let timerId = null;
 
 const avatar = document.getElementById("avatar-img");
 const screenText = document.getElementById("main-text");
@@ -206,21 +206,32 @@ function iniciarJuego() {
         arma: armas[Math.floor(Math.random() * armas.length)]
     };
 
+    distribucionArmas = {}; // Limpiamos la distribución anterior
     let armasMezcladas = [...armas].sort(() => 0.5 - Math.random());
     locaciones.forEach((loc, i) => {
         distribucionArmas[loc] = armasMezcladas[i];
     });
 
-    // Secreto para el desarrollador
-    console.log("CRIMEN REAL:", crimenReal);
+    console.log("NUEVO CRIMEN REAL:", crimenReal);
 
     generarSelects();
     generarBotones();
 }
 
-// 3. CONTROL DE PANELES
+// 3. REINICIAR JUEGO (NUEVA FUNCIÓN)
+function reiniciarJuego() {
+    iniciarJuego(); // Genera nuevo crimen y reconstruye botones/selects
+    
+    // Restaurar la interfaz al estado original
+    ocultarTodo();
+    document.getElementById("controls").style.display = "grid";
+    avatar.src = "img/default.png";
+    screenText.innerHTML = "Un nuevo crimen ha ocurrido en la mansión. ¿Podrás resolverlo esta vez, detective?";
+}
+
+// 4. CONTROL DE PANELES
 function mostrarPanel(tipo) {
-    clearTimeout(timerId); // Detiene cualquier reinicio pendiente
+    clearTimeout(timerId); 
     ocultarTodo();
     document.getElementById("controls").style.display = "none";
 
@@ -257,7 +268,7 @@ function volverAlInicio() {
     screenText.innerHTML = "Continúa con tu investigación, detective.";
 }
 
-// 4. MECÁNICA DE INSPECCIÓN
+// 5. MECÁNICA DE INSPECCIÓN
 function inspeccionar(lugar) {
     clearTimeout(timerId);
     avatar.src = "img/investigar.png";
@@ -273,14 +284,13 @@ function inspeccionar(lugar) {
     timerId = setTimeout(volverAlInicio, 4500);
 }
 
-// 5. MECÁNICA DE INTERROGATORIO Y DIÁLOGOS
+// 6. MECÁNICA DE INTERROGATORIO Y DIÁLOGOS
 function interrogar(idGato) {
     clearTimeout(timerId);
     const gato = personajes.find(p => p.id === idGato);
     avatar.src = gato.icono;
 
     if (idGato === crimenReal.culpable) {
-        // DIÁLOGOS CULPABLES (Restaurados)
         let dialogoMiente = "";
         if(idGato === "Bruno") dialogoMiente = "La oscuridad oculta muchos secretos... y yo no tengo por qué contártelos.";
         if(idGato === "Alfredo") dialogoMiente = "(Se arregla la pajarita) Yo... estuve limpiando mi arena todo el tiempo. No sé nada.";
@@ -290,7 +300,6 @@ function interrogar(idGato) {
 
         screenText.innerHTML = `<b>${gato.id}:</b> "${dialogoMiente}"`;
     } else {
-        // DIÁLOGOS INOCENTES CON PISTAS (Restaurados)
         const cuartoPista = locaciones[Math.floor(Math.random() * locaciones.length)];
         const armaPista = distribucionArmas[cuartoPista];
         
@@ -307,25 +316,25 @@ function interrogar(idGato) {
     timerId = setTimeout(volverAlInicio, 5500);
 }
 
-// 6. VALIDACIÓN Y FINALES DE HISTORIA
+// 7. VALIDACIÓN Y FINALES DE HISTORIA
 function verificarAcusacion() {
     clearTimeout(timerId);
     const cul = document.getElementById("sel-culpable").value;
     const arm = document.getElementById("sel-arma").value;
     const lug = document.getElementById("sel-lugar").value;
 
-    // Validación por si no seleccionan nada
     if(!cul || !arm || !lug) {
         screenText.innerHTML = "¡Debes seleccionar a un sospechoso, un arma y un lugar válido!";
         return; 
     }
 
-    ocultarTodo(); // Ocultamos el formulario de inmediato
+    ocultarTodo();
+
+    let botonReinicio = `<br><br><button onclick="reiniciarJuego()" style="background:var(--accent); color:#000; border:none; padding:10px 20px; font-size:18px;">🔄 Volver a Jugar</button>`;
 
     if (cul === crimenReal.culpable && arm === crimenReal.arma && lug === crimenReal.lugar) {
         avatar.src = "img/ganar.png";
         
-        // HISTORIAS FINALES (Restauradas)
         let historiaFinal = "";
         if(cul === "Bruno") historiaFinal = `Caso Venganza de Murciélago. El Sr. Bruno actuó para proteger un oscuro secreto familiar. Cometió el acto en ${lug} con ${arm}.`;
         if(cul === "Alfredo") historiaFinal = `Caso Crimen de Mayordomo. Harto de un chantaje que ponía en riesgo su reputación, actuó con frialdad en ${lug} utilizando ${arm}.`;
@@ -333,20 +342,19 @@ function verificarAcusacion() {
         if(cul === "Espejo") historiaFinal = `Caso Reflejo Oscuro. En un delirio de doble identidad, cometió el acto en ${lug} empuñando ${arm}.`;
         if(cul === "Selina") historiaFinal = `Caso Robo Pasional. Atrapada en pleno robo, no tuvo opción. Cometió el acto en ${lug} con ${arm} y huyó sin dejar rastro.`;
 
-        screenText.innerHTML = `<h2 style="color:var(--success); margin-bottom:10px;">¡CASO CERRADO!</h2>${historiaFinal}`;
+        screenText.innerHTML = `<h2 style="color:var(--success); margin-bottom:10px;">¡CASO CERRADO!</h2>${historiaFinal} ${botonReinicio}`;
     } else {
         avatar.src = "img/perder.png";
-        screenText.innerHTML = `<h2 style="color:var(--danger); margin-bottom:10px;">VEREDICTO INCORRECTO</h2>El asesino sigue suelto y escapó en la noche. La verdad era que <b>${crimenReal.culpable}</b> cometió el acto en <b>${crimenReal.lugar}</b> con <b>${crimenReal.arma}</b>.`;
+        screenText.innerHTML = `<h2 style="color:var(--danger); margin-bottom:10px;">VEREDICTO INCORRECTO</h2>El asesino sigue suelto y escapó en la noche. La verdad era que <b>${crimenReal.culpable}</b> cometió el acto en <b>${crimenReal.lugar}</b> con <b>${crimenReal.arma}</b>. ${botonReinicio}`;
     }
 }
 
-// 7. GENERADORES DE INTERFAZ
+// 8. GENERADORES DE INTERFAZ
 function generarSelects() {
     const sCul = document.getElementById("sel-culpable");
     const sArm = document.getElementById("sel-arma");
     const sLug = document.getElementById("sel-lugar");
 
-    // Agregamos opciones vacías para obligar al usuario a elegir
     sCul.innerHTML = '<option value="">-- Selecciona Culpable --</option>';
     sArm.innerHTML = '<option value="">-- Selecciona Arma --</option>';
     sLug.innerHTML = '<option value="">-- Selecciona Lugar --</option>';
@@ -358,6 +366,7 @@ function generarSelects() {
 
 function generarBotones() {
     const p1 = document.getElementById("panel-inspeccionar");
+    p1.innerHTML = ""; // Limpiamos para evitar botones duplicados al reiniciar
     locaciones.forEach(l => {
         let b = document.createElement("button");
         b.innerText = l;
@@ -366,6 +375,7 @@ function generarBotones() {
     });
 
     const p2 = document.getElementById("panel-interrogar");
+    p2.innerHTML = ""; // Limpiamos para evitar botones duplicados al reiniciar
     personajes.forEach(p => {
         let b = document.createElement("button");
         b.innerText = p.id;

@@ -1,3 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misterio en Mansión Wayne</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Urbanist:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --accent: #facc15;
+            --text-main: #f8fafc;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        body {
+            font-family: 'Urbanist', sans-serif;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game-container {
+            max-width: 900px;
+            background-color: var(--panel-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid #334155;
+        }
+
+        header {
+            background-color: #020617;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        h1 {
+            font-family: 'Bangers';
+            color: var(--accent);
+            margin: 0;
+        }
+
+        #screen {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .avatar {
+            width: 130px;
+            height: 130px;
+            object-fit: contain;
+            margin-bottom: 15px;
+        }
+
+        .dialogue-box {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid var(--accent);
+        }
+
+        #controls {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px;
+            padding: 20px;
+        }
+
+        button {
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            background: var(--panel-bg);
+            color: white;
+            cursor: pointer;
+        }
+
+        .action-panel {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #acusacion-form {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="game-container">
+
+<header>
+    <h1>CLUE: MANSIÓN WAYNE</h1>
+</header>
+
+<div id="screen">
+
+    <img id="avatar" class="avatar" src="img/default.png">
+
+    <div class="dialogue-box" id="main-text">
+        Investiga el crimen en la mansión.
+    </div>
+
+    <div id="panel-inspeccionar" class="action-panel"></div>
+    <div id="panel-interrogar" class="action-panel"></div>
+
+    <div id="acusacion-form">
+        <select id="sel-culpable"></select>
+        <select id="sel-arma"></select>
+        <select id="sel-lugar"></select>
+        <button onclick="verificar()">Acusar</button>
+        <button onclick="volver()">Cancelar</button>
+    </div>
+
+</div>
+
+<div id="controls">
+    <button onclick="panel('inspeccionar')">Inspeccionar</button>
+    <button onclick="panel('interrogar')">Interrogar</button>
+    <button onclick="panel('acusar')">Acusar</button>
+</div>
+
+</div>
+
+<script>
+
+const personajes = [
+    {id:"Bruno", img:"img/bruno.png"},
+    {id:"Alfredo", img:"img/alfredo.png"},
+    {id:"Damian", img:"img/damian.png"},
+    {id:"Espejo", img:"img/espejo.png"},
+    {id:"Selina", img:"img/selina.png"}
+];
+
+const locaciones = ["Sala","Cocina","Comedor","Dormitorio","Cuarto Prohibido"];
+const armas = ["Candelabro","Daga","Tubo","Revólver","Cuerda"];
+
+let solucion = {};
+
+const avatar = document.getElementById("avatar");
+const texto = document.getElementById("main-text");
+
+function iniciar(){
+    solucion = {
+        culpable: personajes[Math.floor(Math.random()*5)].id,
+        lugar: locaciones[Math.floor(Math.random()*5)],
+        arma: armas[Math.floor(Math.random()*5)]
+    };
+
+    llenarSelects();
+    crearBotones();
+}
+
+function panel(tipo){
+    ocultarTodo();
+
+    if(tipo==="inspeccionar"){
+        avatar.src="img/puerta.png";
+        texto.innerHTML="¿Qué lugar inspeccionas?";
+        document.getElementById("panel-inspeccionar").style.display="block";
+    }
+
+    if(tipo==="interrogar"){
+        avatar.src="img/interrogar.png";
+        texto.innerHTML="¿A quién interrogas?";
+        document.getElementById("panel-interrogar").style.display="block";
+    }
+
+    if(tipo==="acusar"){
+        avatar.src="img/acusar.png";
+        texto.innerHTML="Haz tu acusación";
+        document.getElementById("acusacion-form").style.display="flex";
+    }
+}
+
+function ocultarTodo(){
+    document.getElementById("panel-inspeccionar").style.display="none";
+    document.getElementById("panel-interrogar").style.display="none";
+    document.getElementById("acusacion-form").style.display="none";
+}
+
+function volver(){
+    ocultarTodo();
+    avatar.src="img/default.png";
+    texto.innerHTML="Sigue investigando...";
+}
+
+function inspeccionar(lugar){
+    avatar.src="img/investigar.png";
+    texto.innerHTML="Revisas "+lugar;
+    setTimeout(volver,2000);
+}
+
+function interrogar(nombre){
+    let p = personajes.find(x=>x.id===nombre);
+    avatar.src=p.img;
+
+    if(nombre===solucion.culpable){
+        texto.innerHTML="Se ve nervioso...";
+    }else{
+        texto.innerHTML="Dice que no fue.";
+    }
+
+    setTimeout(volver,2500);
+}
+
+function verificar(){
+    let c=document.getElementById("sel-culpable").value;
+    let a=document.getElementById("sel-arma").value;
+    let l=document.getElementById("sel-lugar").value;
+
+    if(c===solucion.culpable && a===solucion.arma && l===solucion.lugar){
+        avatar.src="img/ganar.png";
+        texto.innerHTML="¡Ganaste!";
+    }else{
+        avatar.src="img/perder.png";
+        texto.innerHTML="Perdiste. Era "+solucion.culpable;
+    }
+}
+
+function crearBotones(){
+    let p1=document.getElementById("panel-inspeccionar");
+    locaciones.forEach(l=>{
+        let b=document.createElement("button");
+        b.innerText=l;
+        b.onclick=()=>inspeccionar(l);
+        p1.appendChild(b);
+    });
+
+    let p2=document.getElementById("panel-interrogar");
+    personajes.forEach(p=>{
+        let b=document.createElement("button");
+        b.innerText=p.id;
+        b.onclick=()=>interrogar(p.id);
+        p2.appendChild(b);
+    });
+}
+
 function generarSelects() {
     const sCul = document.getElementById("sel-culpable");
     const sArm = document.getElementById("sel-arma");
@@ -20,3 +269,10 @@ function generarSelects() {
         sLug.innerHTML += `<option value="${l}">${l}</option>`;
     });
 }
+
+iniciar();
+
+</script>
+
+</body>
+</html>

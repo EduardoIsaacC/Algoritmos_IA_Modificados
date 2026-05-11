@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Misterio en Mansión Wayne</title>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Urbanist:wght@400;700&display=swap');
 
@@ -12,34 +13,26 @@
             --panel-bg: #1e293b;
             --accent: #facc15;
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
             --danger: #ef4444;
             --success: #22c55e;
         }
 
         body {
             font-family: 'Urbanist', sans-serif;
-            background-color: var(--bg-color);
+            background: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
             color: var(--text-main);
-            margin: 0;
-            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-image: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
         }
 
         #game-container {
-            width: 100%;
             max-width: 900px;
             background-color: var(--panel-bg);
             border-radius: 20px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            border: 2px solid #334155;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            border: 2px solid #334155;
         }
 
         header {
@@ -50,36 +43,21 @@
         }
 
         h1 {
-            font-family: 'Bangers', cursive;
+            font-family: 'Bangers';
             color: var(--accent);
-            font-size: 40px;
             margin: 0;
-            letter-spacing: 2px;
         }
 
         #screen {
             padding: 30px;
-            min-height: 300px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             text-align: center;
         }
 
-        /* Estilos para las imágenes inyectadas en lugar de emojis */
         .avatar {
-            margin-bottom: 20px;
-        }
-
-        .avatar img {
-            border-radius: 50%;
-            border: 4px solid var(--accent);
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
             width: 130px;
             height: 130px;
-            object-fit: cover;
-            background-color: #000;
+            object-fit: contain;
+            margin-bottom: 15px;
         }
 
         .dialogue-box {
@@ -87,269 +65,209 @@
             padding: 20px;
             border-radius: 10px;
             border-left: 5px solid var(--accent);
-            font-size: 20px;
-            max-width: 600px;
-            margin-bottom: 20px;
         }
 
         #controls {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            padding: 20px 30px;
-            background: #0f172a;
-            border-top: 1px solid #334155;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px;
+            padding: 20px;
         }
 
         button {
-            background-color: var(--panel-bg);
-            color: var(--text-main);
-            border: 2px solid var(--accent);
-            padding: 15px;
+            padding: 12px;
             border-radius: 10px;
-            font-family: 'Bangers', cursive;
-            font-size: 22px;
+            border: 2px solid var(--accent);
+            background: var(--panel-bg);
+            color: white;
             cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-        }
-
-        button:hover {
-            background-color: var(--accent);
-            color: #000;
-            transform: translateY(-2px);
         }
 
         .action-panel {
             display: none;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            width: 100%;
             margin-top: 20px;
         }
-
-        .item-btn {
-            background: #334155;
-            border: 1px solid #475569;
-            font-family: 'Urbanist', sans-serif;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .item-btn:hover { background: #475569; border-color: var(--text-main); color: var(--text-main); }
 
         #acusacion-form {
             display: none;
             flex-direction: column;
-            gap: 15px;
-            width: 100%;
-            max-width: 400px;
-            text-align: left;
+            gap: 10px;
         }
-
-        select {
-            padding: 10px;
-            background: #0f172a;
-            color: white;
-            border: 2px solid var(--accent);
-            border-radius: 5px;
-            font-size: 16px;
-            font-family: inherit;
-        }
-
     </style>
 </head>
+
 <body>
 
 <div id="game-container">
-    <header>
-        <h1>CLUE: MANSIÓN WAYNE</h1>
-    </header>
 
-    <div id="screen">
-        <div class="avatar" id="avatar-container">
-            <img src="https://placehold.co/130x130/1e1b4b/facc15?text=Clue" alt="Clue">
-        </div>
-        <div class="dialogue-box" id="main-text">
-            Ha ocurrido un crimen en la mansión. El jarrón de diamantes ha sido destruido. Eres el detective encargado de interrogar a los felinos, inspeccionar las habitaciones y encontrar al culpable.
-        </div>
-        
-        <div id="panel-inspeccionar" class="action-panel"></div>
-        <div id="panel-interrogar" class="action-panel"></div>
-        
-        <div id="acusacion-form">
-            <h3 style="margin:0; color: #facc15; font-family:'Bangers';">VEREDICTO FINAL</h3>
-            <label>Culpable:</label>
-            <select id="sel-culpable"></select>
-            <label>Arma:</label>
-            <select id="sel-arma"></select>
-            <label>Lugar:</label>
-            <select id="sel-lugar"></select>
-            <button onclick="verificarAcusacion()" style="background:#ef4444; color:white; border-color:#ef4444;">¡Acusar!</button>
-            <button onclick="volverAlInicio()" class="item-btn">Cancelar</button>
-        </div>
+<header>
+    <h1>CLUE: MANSIÓN WAYNE</h1>
+</header>
+
+<div id="screen">
+
+    <img id="avatar" class="avatar" src="img/default.png">
+
+    <div class="dialogue-box" id="main-text">
+        Investiga el crimen en la mansión.
     </div>
 
-    <div id="controls">
-        <button onclick="mostrarPanel('inspeccionar')">🔍 Inspeccionar</button>
-        <button onclick="mostrarPanel('interrogar')">💬 Interrogar</button>
-        <button onclick="mostrarPanel('acusar')">⚖️ Acusar</button>
+    <div id="panel-inspeccionar" class="action-panel"></div>
+    <div id="panel-interrogar" class="action-panel"></div>
+
+    <div id="acusacion-form">
+        <select id="sel-culpable"></select>
+        <select id="sel-arma"></select>
+        <select id="sel-lugar"></select>
+        <button onclick="verificar()">Acusar</button>
+        <button onclick="volver()">Cancelar</button>
     </div>
+
+</div>
+
+<div id="controls">
+    <button onclick="panel('inspeccionar')">Inspeccionar</button>
+    <button onclick="panel('interrogar')">Interrogar</button>
+    <button onclick="panel('acusar')">Acusar</button>
+</div>
+
 </div>
 
 <script>
-    // 1. Datos del Juego (Aquí están las imágenes web dinámicas)
-    const personajes = [
-        { id: "Bruno", icono: '<img src="https://placehold.co/130x130/000000/facc15?text=Bruno" alt="Bruno">', desc: "El Vigilante" },
-        { id: "Alfredo", icono: '<img src="https://placehold.co/130x130/1e293b/ffffff?text=Alfredo" alt="Alfredo">', desc: "El Mayordomo" },
-        { id: "Damian", icono: '<img src="https://placehold.co/130x130/ef4444/ffffff?text=Damian" alt="Damian">', desc: "El Rebelde" },
-        { id: "Espejo", icono: '<img src="https://placehold.co/130x130/a855f7/ffffff?text=Espejo" alt="Espejo">', desc: "El Caricaturesco" },
-        { id: "Selina", icono: '<img src="https://placehold.co/130x130/020617/facc15?text=Selina" alt="Selina">', desc: "La Escurridiza" }
-    ];
-    const locaciones = ["Sala", "Cocina", "Comedor", "Dormitorio", "Cuarto Prohibido"];
-    const armas = ["Candelabro", "Daga", "Tubo de Plomo", "Revólver", "Cuerda"];
 
-    // Variables de estado
-    let crimenReal = {};
-    let distribucionArmas = {};
+const personajes = [
+    {id:"Bruno", img:"img/bruno.png"},
+    {id:"Alfredo", img:"img/alfredo.png"},
+    {id:"Damian", img:"img/damian.png"},
+    {id:"Espejo", img:"img/espejo.png"},
+    {id:"Selina", img:"img/selina.png"}
+];
 
-    // 2. Inicializar Partida
-    function iniciarJuego() {
-        crimenReal = {
-            culpable: personajes[Math.floor(Math.random() * personajes.length)].id,
-            lugar: locaciones[Math.floor(Math.random() * locaciones.length)],
-            arma: armas[Math.floor(Math.random() * armas.length)]
-        };
+const locaciones = ["Sala","Cocina","Comedor","Dormitorio","Cuarto Prohibido"];
+const armas = ["Candelabro","Daga","Tubo","Revólver","Cuerda"];
 
-        let armasMezcladas = [...armas].sort(() => 0.5 - Math.random());
-        locaciones.forEach((loc, index) => {
-            distribucionArmas[loc] = armasMezcladas[index];
-        });
+let solucion = {};
 
-        console.log("Solución secreta para el desarrollador:", crimenReal); 
-        generarSelects();
-        generarBotones();
+const avatar = document.getElementById("avatar");
+const texto = document.getElementById("main-text");
+
+function iniciar(){
+    solucion = {
+        culpable: personajes[Math.floor(Math.random()*5)].id,
+        lugar: locaciones[Math.floor(Math.random()*5)],
+        arma: armas[Math.floor(Math.random()*5)]
+    };
+
+    llenarSelects();
+    crearBotones();
+}
+
+function panel(tipo){
+    ocultarTodo();
+
+    if(tipo==="inspeccionar"){
+        avatar.src="img/puerta.png";
+        texto.innerHTML="¿Qué lugar inspeccionas?";
+        document.getElementById("panel-inspeccionar").style.display="block";
     }
 
-    // 3. Lógica de UI
-    const screenText = document.getElementById("main-text");
-    const avatar = document.getElementById("avatar-container");
-
-    function mostrarPanel(tipo) {
-        document.getElementById("panel-inspeccionar").style.display = "none";
-        document.getElementById("panel-interrogar").style.display = "none";
-        document.getElementById("acusacion-form").style.display = "none";
-        document.getElementById("controls").style.display = "none";
-
-        if (tipo === 'inspeccionar') {
-            avatar.innerHTML = '<img src="https://placehold.co/130x130/334155/ffffff?text=Mapa" alt="Mapa">';
-            screenText.innerHTML = "¿Qué habitación deseas investigar?";
-            document.getElementById("panel-inspeccionar").style.display = "grid";
-        } else if (tipo === 'interrogar') {
-            avatar.innerHTML = '<img src="https://placehold.co/130x130/475569/ffffff?text=Gatos" alt="Sospechosos">';
-            screenText.innerHTML = "¿A qué gato sospechoso vas a presionar?";
-            document.getElementById("panel-interrogar").style.display = "grid";
-        } else if (tipo === 'acusar') {
-            avatar.innerHTML = '<img src="https://placehold.co/130x130/ef4444/ffffff?text=Policia" alt="Acusar">';
-            screenText.innerHTML = "Arma tu deducción. Si fallas, el culpable escapará.";
-            document.getElementById("acusacion-form").style.display = "flex";
-        }
+    if(tipo==="interrogar"){
+        avatar.src="img/interrogar.png";
+        texto.innerHTML="¿A quién interrogas?";
+        document.getElementById("panel-interrogar").style.display="block";
     }
 
-    function volverAlInicio() {
-        document.getElementById("panel-inspeccionar").style.display = "none";
-        document.getElementById("panel-interrogar").style.display = "none";
-        document.getElementById("acusacion-form").style.display = "none";
-        document.getElementById("controls").style.display = "grid";
-        avatar.innerHTML = '<img src="https://placehold.co/130x130/1e1b4b/facc15?text=Clue" alt="Clue">';
-        screenText.innerHTML = "Continúa con tu investigación, detective.";
+    if(tipo==="acusar"){
+        avatar.src="img/acusar.png";
+        texto.innerHTML="Haz tu acusación";
+        document.getElementById("acusacion-form").style.display="flex";
+    }
+}
+
+function ocultarTodo(){
+    document.getElementById("panel-inspeccionar").style.display="none";
+    document.getElementById("panel-interrogar").style.display="none";
+    document.getElementById("acusacion-form").style.display="none";
+}
+
+function volver(){
+    ocultarTodo();
+    avatar.src="img/default.png";
+    texto.innerHTML="Sigue investigando...";
+}
+
+function inspeccionar(lugar){
+    avatar.src="img/investigar.png";
+    texto.innerHTML="Revisas "+lugar;
+    setTimeout(volver,2000);
+}
+
+function interrogar(nombre){
+    let p = personajes.find(x=>x.id===nombre);
+    avatar.src=p.img;
+
+    if(nombre===solucion.culpable){
+        texto.innerHTML="Se ve nervioso...";
+    }else{
+        texto.innerHTML="Dice que no fue.";
     }
 
-    // 4. Mecánicas de Inspección
-    function inspeccionar(lugar) {
-        const armaEncontrada = distribucionArmas[lugar];
-        let mensaje = `Al revisar cuidadosamente <b>${lugar}</b>, encuentras el <b>${armaEncontrada}</b> oculto.`;
-        
-        if (lugar === crimenReal.lugar) {
-            mensaje += `<br><br><span style="color:#facc15;">¡PISTA VITAL! Hay marcas de garras y un olor a pólvora quemada. Esta es definitivamente la escena del crimen.</span>`;
-        }
+    setTimeout(volver,2500);
+}
 
-        // Muestra una imagen dinámica del cuarto
-        avatar.innerHTML = `<img src="https://placehold.co/130x130/0f172a/facc15?text=${lugar}" alt="${lugar}">`;
-        screenText.innerHTML = mensaje;
-        setTimeout(volverAlInicio, 4000);
+function verificar(){
+    let c=document.getElementById("sel-culpable").value;
+    let a=document.getElementById("sel-arma").value;
+    let l=document.getElementById("sel-lugar").value;
+
+    if(c===solucion.culpable && a===solucion.arma && l===solucion.lugar){
+        avatar.src="img/ganar.png";
+        texto.innerHTML="¡Ganaste!";
+    }else{
+        avatar.src="img/perder.png";
+        texto.innerHTML="Perdiste. Era "+solucion.culpable;
     }
+}
 
-    // 5. Mecánicas de Interrogatorio
-    function interrogar(idGato) {
-        const gato = personajes.find(p => p.id === idGato);
-        avatar.innerHTML = gato.icono; // Inyecta la imagen del gato
-        
-        if (idGato === crimenReal.culpable) {
-            const mentiras = [
-                "¡Yo estaba afilando mis uñas! No sé nada de ninguna escena del crimen.",
-                "*Se lame la pata nervioso* El servicio es difícil... a veces ocurren accidentes.",
-                "¡No puedes probar que yo estuve ahí!",
-                "La noche oculta mis secretos... no diré más."
-            ];
-            screenText.innerHTML = `<b>${gato.id}:</b> "${mentiras[Math.floor(Math.random() * mentiras.length)]}"`;
-        } else {
-            const cuartoPista = locaciones[Math.floor(Math.random() * locaciones.length)];
-            const armaPista = distribucionArmas[cuartoPista];
-            screenText.innerHTML = `<b>${gato.id}:</b> "Yo no fui. Pero mis ojos lo ven todo... vi que el <b>${armaPista}</b> estaba escondido en la <b>${cuartoPista}</b>."`;
-        }
-        setTimeout(volverAlInicio, 5000);
-    }
+function crearBotones(){
+    let p1=document.getElementById("panel-inspeccionar");
+    locaciones.forEach(l=>{
+        let b=document.createElement("button");
+        b.innerText=l;
+        b.onclick=()=>inspeccionar(l);
+        p1.appendChild(b);
+    });
 
-    // 6. Validación de Victoria
-    function verificarAcusacion() {
-        const cul = document.getElementById("sel-culpable").value;
-        const arm = document.getElementById("sel-arma").value;
-        const lug = document.getElementById("sel-lugar").value;
+    let p2=document.getElementById("panel-interrogar");
+    personajes.forEach(p=>{
+        let b=document.createElement("button");
+        b.innerText=p.id;
+        b.onclick=()=>interrogar(p.id);
+        p2.appendChild(b);
+    });
+}
 
-        document.getElementById("acusacion-form").style.display = "none";
+function llenarSelects(){
 
-        if (cul === crimenReal.culpable && arm === crimenReal.arma && lug === crimenReal.lugar) {
-            avatar.innerHTML = '<img src="https://placehold.co/130x130/22c55e/ffffff?text=Victoria" alt="Victoria">';
-            screenText.innerHTML = `<h2 style="color:#22c55e;">¡CASO CERRADO!</h2>¡Brillante deducción! Descubriste que <b>${cul}</b> fue el culpable en <b>${lug}</b> utilizando <b>${arm}</b>.`;
-        } else {
-            avatar.innerHTML = '<img src="https://placehold.co/130x130/ef4444/ffffff?text=Derrota" alt="Derrota">';
-            screenText.innerHTML = `<h2 style="color:#ef4444;">VEREDICTO INCORRECTO</h2>Te has equivocado. El asesino real era <b>${crimenReal.culpable}</b> usando <b>${crimenReal.arma}</b> en <b>${crimenReal.lugar}</b>. <br>El culpable ha escapado.`;
-        }
-    }
+    const selCulpable = document.getElementById("sel-culpable");
+    const selArma = document.getElementById("sel-arma");
+    const selLugar = document.getElementById("sel-lugar");
 
-    // 7. Generadores de Interfaz
-    function generarBotones() {
-        const panelInsp = document.getElementById("panel-inspeccionar");
-        locaciones.forEach(loc => {
-            let btn = document.createElement("button");
-            btn.className = "item-btn";
-            btn.innerText = loc;
-            btn.onclick = () => inspeccionar(loc);
-            panelInsp.appendChild(btn);
-        });
+    personajes.forEach(p=>{
+        selCulpable.innerHTML += `<option>${p.id}</option>`;
+    });
 
-        const panelInt = document.getElementById("panel-interrogar");
-        personajes.forEach(p => {
-            let btn = document.createElement("button");
-            btn.className = "item-btn";
-            btn.innerText = p.id;
-            btn.onclick = () => interrogar(p.id);
-            panelInt.appendChild(btn);
-        });
-    }
+    armas.forEach(a=>{
+        selArma.innerHTML += `<option>${a}</option>`;
+    });
 
-    function generarSelects() {
-        const sCul = document.getElementById("sel-culpable");
-        personajes.forEach(p => sCul.innerHTML += `<option value="${p.id}">${p.id}</option>`);
-        const sArm = document.getElementById("sel-arma");
-        armas.forEach(a => sArm.innerHTML += `<option value="${a}">${a}</option>`);
-        const sLug = document.getElementById("sel-lugar");
-        locaciones.forEach(l => sLug.innerHTML += `<option value="${l}">${l}</option>`);
-    }
+    locaciones.forEach(l=>{
+        selLugar.innerHTML += `<option>${l}</option>`;
+    });
+}
 
-    // Iniciar el simulador
-    iniciarJuego();
+iniciar();
+
 </script>
 
 </body>

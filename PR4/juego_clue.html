@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misterio en Mansión Wayne</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Urbanist:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --accent: #facc15;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #22c55e;
+        }
+
+        body {
+            font-family: 'Urbanist', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at center, #1e1b4b 0%, #020617 100%);
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: var(--panel-bg);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            border: 2px solid #334155;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: #020617;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--accent);
+        }
+
+        h1 {
+            font-family: 'Bangers', cursive;
+            color: var(--accent);
+            font-size: 40px;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        #screen {
+            padding: 30px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .avatar {
+            font-size: 80px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+        }
+
+        .dialogue-box {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid var(--accent);
+            font-size: 20px;
+            max-width: 600px;
+            margin-bottom: 20px;
+        }
+
+        #controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            padding: 20px 30px;
+            background: #0f172a;
+            border-top: 1px solid #334155;
+        }
+
+        button {
+            background-color: var(--panel-bg);
+            color: var(--text-main);
+            border: 2px solid var(--accent);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Bangers', cursive;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background-color: var(--accent);
+            color: #000;
+            transform: translateY(-2px);
+        }
+
+        .action-panel {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .item-btn {
+            background: #334155;
+            border: 1px solid #475569;
+            font-family: 'Urbanist', sans-serif;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .item-btn:hover { background: #475569; border-color: var(--text-main); color: var(--text-main); }
+
+        /* Formulario de Acusación */
+        #acusacion-form {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+            text-align: left;
+        }
+
+        select {
+            padding: 10px;
+            background: #0f172a;
+            color: white;
+            border: 2px solid var(--accent);
+            border-radius: 5px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <header>
+        <h1>CLUE: MANSIÓN WAYNE</h1>
+    </header>
+
+    <div id="screen">
+        <div class="avatar">🦇🐱</div>
+        <div class="dialogue-box" id="main-text">
+            Ha ocurrido un crimen en la mansión. El jarrón de diamantes ha sido destruido. Eres el detective encargado de interrogar a los felinos, inspeccionar las habitaciones y encontrar al culpable.
+        </div>
+        
+        <div id="panel-inspeccionar" class="action-panel"></div>
+        <div id="panel-interrogar" class="action-panel"></div>
+        
+        <div id="acusacion-form">
+            <h3 style="margin:0; color: #facc15; font-family:'Bangers';">VEREDICTO FINAL</h3>
+            <label>Culpable:</label>
+            <select id="sel-culpable"></select>
+            <label>Arma:</label>
+            <select id="sel-arma"></select>
+            <label>Lugar:</label>
+            <select id="sel-lugar"></select>
+            <button onclick="verificarAcusacion()" style="background:#ef4444; color:white; border-color:#ef4444;">¡Acusar!</button>
+            <button onclick="volverAlInicio()" class="item-btn">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button onclick="mostrarPanel('inspeccionar')">🔍 Inspeccionar</button>
+        <button onclick="mostrarPanel('interrogar')">💬 Interrogar</button>
+        <button onclick="mostrarPanel('acusar')">⚖️ Acusar</button>
+    </div>
+</div>
+
+<script>
+    // 1. Datos del Juego
+    const personajes = [
+        { id: "Bruno", icono: "🦇🐈‍⬛", desc: "El Vigilante" },
+        { id: "Alfredo", icono: "🤵🐈", desc: "El Mayordomo Tuxedo" },
+        { id: "Damian", icono: "😾", desc: "El Rebelde" },
+        { id: "Espejo", icono: "🙀", desc: "El Caricaturesco" },
+        { id: "Selina", icono: "🐈‍⬛💎", desc: "La Escurridiza" }
+    ];
+    const locaciones = ["Sala", "Cocina", "Comedor", "Dormitorio", "Cuarto Prohibido"];
+    const armas = ["Candelabro", "Daga", "Tubo de Plomo", "Revólver", "Cuerda"];
+
+    // Variables de estado
+    let crimenReal = {};
+    let distribucionArmas = {};
+
+    // 2. Inicializar Partida
+    function iniciarJuego() {
+        // Seleccionar el crimen real al azar
+        crimenReal = {
+            culpable: personajes[Math.floor(Math.random() * personajes.length)].id,
+            lugar: locaciones[Math.floor(Math.random() * locaciones.length)],
+            arma: armas[Math.floor(Math.random() * armas.length)]
+        };
+
+        // Distribuir 1 arma aleatoria por cuarto
+        let armasMezcladas = [...armas].sort(() => 0.5 - Math.random());
+        locaciones.forEach((loc, index) => {
+            distribucionArmas[loc] = armasMezcladas[index];
+        });
+
+        console.log("Shhh... Solución secreta:", crimenReal); // Para que tú como dev lo veas en la consola
+        generarSelects();
+        generarBotones();
+    }
+
+    // 3. Lógica de UI
+    const screenText = document.getElementById("main-text");
+    const avatar = document.querySelector(".avatar");
+
+    function mostrarPanel(tipo) {
+        document.getElementById("panel-inspeccionar").style.display = "none";
+        document.getElementById("panel-interrogar").style.display = "none";
+        document.getElementById("acusacion-form").style.display = "none";
+        document.getElementById("controls").style.display = "none";
+
+        if (tipo === 'inspeccionar') {
+            avatar.innerHTML = "🚪";
+            screenText.innerHTML = "¿Qué habitación deseas investigar?";
+            document.getElementById("panel-inspeccionar").style.display = "grid";
+        } else if (tipo === 'interrogar') {
+            avatar.innerHTML = "🐾";
+            screenText.innerHTML = "¿A qué gato sospechoso vas a presionar?";
+            document.getElementById("panel-interrogar").style.display = "grid";
+        } else if (tipo === 'acusar') {
+            avatar.innerHTML = "🚨";
+            screenText.innerHTML = "Arma tu deducción. Si fallas, el culpable escapará.";
+            document.getElementById("acusacion-form").style.display = "flex";
+        }
+    }
+
+    function volverAlInicio() {
+        document.getElementById("panel-inspeccionar").style.display = "none";
+        document.getElementById("panel-interrogar").style.display = "none";
+        document.getElementById("acusacion-form").style.display = "none";
+        document.getElementById("controls").style.display = "grid";
+        avatar.innerHTML = "🦇🐱";
+        screenText.innerHTML = "Continúa con tu investigación, detective.";
+    }
+
+    // 4. Mecánicas de Inspección
+    function inspeccionar(lugar) {
+        const armaEncontrada = distribucionArmas[lugar];
+        let mensaje = `Al revisar cuidadosamente ${lugar}, encuentras <b>${armaEncontrada}</b> oculta.`;
+        
+        if (lugar === crimenReal.lugar) {
+            mensaje += `<br><br><span style="color:#facc15;">¡PISTA VITAL! Hay marcas de garras y un olor a pólvora quemada. Esta es definitivamente la escena del crimen.</span>`;
+        }
+
+        avatar.innerHTML = "🔎";
+        screenText.innerHTML = mensaje;
+        setTimeout(volverAlInicio, 4000);
+    }
+
+    // 5. Mecánicas de Interrogatorio
+    function interrogar(idGato) {
+        const gato = personajes.find(p => p.id === idGato);
+        avatar.innerHTML = gato.icono;
+        
+        if (idGato === crimenReal.culpable) {
+            // Diálogo del culpable (miente o se pone nervioso)
+            const mentiras = [
+                "¡Yo estaba afilando mis uñas! No sé nada de ninguna escena del crimen.",
+                "*Se lame la pata nervioso* El servicio es difícil... a veces ocurren accidentes.",
+                "¡No puedes probar que yo estuve ahí!",
+                "La noche oculta mis secretos... no diré más."
+            ];
+            screenText.innerHTML = `<b>${gato.id}:</b> "${mentiras[Math.floor(Math.random() * mentiras.length)]}"`;
+        } else {
+            // Diálogo de inocente (da una pista real del diccionario de armas)
+            // Busca un cuarto al azar que no sea donde está su propia arma (por lógica)
+            const cuartoPista = locaciones[Math.floor(Math.random() * locaciones.length)];
+            const armaPista = distribucionArmas[cuartoPista];
+            screenText.innerHTML = `<b>${gato.id}:</b> "Yo no fui. Pero mis ojos lo ven todo... vi que <b>${armaPista}</b> estaba escondida en <b>${cuartoPista}</b>."`;
+        }
+        setTimeout(volverAlInicio, 5000);
+    }
+
+    // 6. Validación de Victoria
+    function verificarAcusacion() {
+        const cul = document.getElementById("sel-culpable").value;
+        const arm = document.getElementById("sel-arma").value;
+        const lug = document.getElementById("sel-lugar").value;
+
+        document.getElementById("acusacion-form").style.display = "none";
+
+        if (cul === crimenReal.culpable && arm === crimenReal.arma && lug === crimenReal.lugar) {
+            avatar.innerHTML = "🏆";
+            screenText.innerHTML = `<h2 style="color:#22c55e;">¡CASO CERRADO!</h2>¡Brillante deducción! Descubriste que <b>${cul}</b> fue el culpable en <b>${lug}</b> utilizando <b>${arm}</b>.`;
+        } else {
+            avatar.innerHTML = "❌";
+            screenText.innerHTML = `<h2 style="color:#ef4444;">VEREDICTO INCORRECTO</h2>Te has equivocado. El asesino real era <b>${crimenReal.culpable}</b> usando <b>${crimenReal.arma}</b> en <b>${crimenReal.lugar}</b>. <br>El culpable ha escapado.`;
+        }
+    }
+
+    // 7. Generadores de Interfaz
+    function generarBotones() {
+        const panelInsp = document.getElementById("panel-inspeccionar");
+        locaciones.forEach(loc => {
+            let btn = document.createElement("button");
+            btn.className = "item-btn";
+            btn.innerText = loc;
+            btn.onclick = () => inspeccionar(loc);
+            panelInsp.appendChild(btn);
+        });
+
+        const panelInt = document.getElementById("panel-interrogar");
+        personajes.forEach(p => {
+            let btn = document.createElement("button");
+            btn.className = "item-btn";
+            btn.innerText = p.id;
+            btn.onclick = () => interrogar(p.id);
+            panelInt.appendChild(btn);
+        });
+    }
+
+    function generarSelects() {
+        const sCul = document.getElementById("sel-culpable");
+        personajes.forEach(p => sCul.innerHTML += `<option value="${p.id}">${p.id}</option>`);
+        const sArm = document.getElementById("sel-arma");
+        armas.forEach(a => sArm.innerHTML += `<option value="${a}">${a}</option>`);
+        const sLug = document.getElementById("sel-lugar");
+        locaciones.forEach(l => sLug.innerHTML += `<option value="${l}">${l}</option>`);
+    }
+
+    // Iniciar
+    iniciarJuego();
+</script>
+
+</body>
+</html>

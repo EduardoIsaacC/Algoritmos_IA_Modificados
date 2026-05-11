@@ -1,42 +1,75 @@
 import random
 
-def simulador_clue():
-    # 1. Definir las listas (5 de cada uno)
-    personajes = ["Dr. Black (Cirujano)", "Miss Scarlett (Actriz)", "Prof. Plum (Químico)", "Rev. Green (Sacerdote)", "Col. Mustard (Militar)"]
-    locaciones = ["la Biblioteca", "la Cocina", "el Invernadero", "el Comedor", "el Estudio"]
-    armas = ["el Candelabro", "la Daga", "el Tubo de Plomo", "el Revólver", "la Cuerda"]
+def jugar_clue_wayne():
+    personajes = ["Bruno", "Alfredo", "Damian", "Espejo", "Selina"]
+    locaciones = ["Sala", "Cocina", "Comedor", "Dormitorio", "Cuarto Prohibido"]
+    armas = ["Candelabro", "Daga", "Tubo de Plomo", "Revólver", "Cuerda"]
 
-    # 2. Selección aleatoria inicial
-    culpable = random.choice(personajes)
-    locacion = random.choice(locaciones)
-    arma = random.choice(armas)
+    # 1. Definir el crimen real en secreto
+    culpable_real = random.choice(personajes)
+    locacion_real = random.choice(locaciones)
+    arma_real = random.choice(armas)
 
-    print(" INICIANDO SIMULADOR CLUE ")
-    print("Analizando pistas...\n")
+    # 2. Distribuir un arma en cada cuarto
+    random.shuffle(armas)
+    distribucion_armas = {locaciones[i]: armas[i] for i in range(5)}
 
-    # 3. Enlaces de historias (5 casos)
-    if culpable == personajes[0]:
-        print(f"CASO 1: NEGLIGENCIA FATAL")
-        print(f"El {culpable} silenció a la víctima en {locacion} utilizando {arma} para evitar que revelara un caso de negligencia médica pasada.")
-        
-    elif culpable == personajes[1]:
-        print(f"CASO 2: CELOS PROFESIONALES")
-        print(f"{culpable}, en un ataque de furia y celos por un papel protagónico, acorraló a la víctima en {locacion} y terminó con su vida usando {arma}.")
-        
-    elif culpable == personajes[2]:
-        print(f"CASO 3: ROBO DE PATENTE")
-        print(f"El {culpable} descubrió que la víctima le robaba su investigación. Vengó su trabajo en {locacion} empuñando {arma}.")
-        
-    elif culpable == personajes[3]:
-        print(f"CASO 4: CHANTAJE MORAL")
-        print(f"El {culpable} no soportó la extorsión sobre su turbio pasado. Para proteger su reputación de la congregación, cometió el acto en {locacion} con {arma}.")
-        
-    elif culpable == personajes[4]:
-        print(f"CASO 5: DEUDAS DE JUEGO")
-        print(f"El {culpable}, fuertemente presionado por sus deudas de apuestas, emboscó a su acreedor en {locacion} y utilizó {arma} con precisión militar.")
+    print(" BIEVENIDO A LA MANSIÓN WAYNE ")
+    print("Ha ocurrido un crimen. Usa tu instinto de detective para descubrir al culpable.\n")
 
-    print("\n FIN DEL MISTERIO ")
+    # 3. Ciclo principal del juego
+    jugando = True
+    while jugando:
+        print("\n MENÚ DE ACCIÓN ")
+        print("1. Inspeccionar habitación")
+        print("2. Interrogar a un gato")
+        print("3. ¡Resolver el caso!")
+        opcion = input("¿Qué deseas hacer? (1/2/3): ")
 
-# Ejecutar el simulador
+        if opcion == '1':
+            print("\nHabitaciones disponibles: Sala, Cocina, Comedor, Dormitorio, Cuarto Prohibido")
+            cuarto = input("¿Cuál quieres inspeccionar?: ")
+            if cuarto in distribucion_armas:
+                print(f" Inspeccionando {cuarto}...")
+                print(f"Encuentras: {distribucion_armas[cuarto]}.")
+                if cuarto == locacion_real:
+                    print(" Pista extra: Notas marcas de garras recientes cerca de la escena.")
+            else:
+                print("Esa habitación no existe en la mansión.")
+
+        elif opcion == '2':
+            print("\nGatos sospechosos: Bruno, Alfredo, Damian, Espejo, Selina")
+            gato = input("¿A quién deseas interrogar?: ")
+            if gato in personajes:
+                if gato == culpable_real:
+                    print(f" {gato} (Nervioso): ¡Yo no fui! Estuve afilando mis uñas todo el tiempo.")
+                else:
+                    # El gato inocente da una pista real sobre un arma y su cuarto
+                    cuarto_pista = random.choice(locaciones)
+                    arma_pista = distribucion_armas[cuarto_pista]
+                    print(f" {gato}: Yo vi claramente que {arma_pista} estaba en {cuarto_pista}.")
+            else:
+                print("Ese gato no está en la mansión.")
+
+        elif opcion == '3':
+            print("\n ES HORA DE DAR TU VEREDICTO ")
+            acusado = input("¿Quién es el culpable?: ")
+            arma_acusada = input("¿Con qué arma?: ")
+            lugar_acusado = input("¿En dónde ocurrió?: ")
+
+            # Validación de victoria
+            if acusado == culpable_real and arma_acusada == arma_real and lugar_acusado == locacion_real:
+                print("\n ¡CASO CERRADO! ")
+                print(f"¡Correcto! Fue {culpable_real} en {locacion_real} con {arma_real}.")
+                jugando = False
+            else:
+                print("\n VEREDICTO INCORRECTO ")
+                print("Esa no es la verdad. El asesino sigue suelto. Has perdido.")
+                print(f"La verdad era: {culpable_real} en {locacion_real} con {arma_real}.")
+                jugando = False
+        else:
+            print("Opción inválida.")
+
+# Ejecutar el juego
 if __name__ == "__main__":
-    simulador_clue()
+    jugar_clue_wayne()

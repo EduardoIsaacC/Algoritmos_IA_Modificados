@@ -67,10 +67,19 @@
             text-align: center;
         }
 
+        /* Estilos para las imágenes inyectadas en lugar de emojis */
         .avatar {
-            font-size: 80px;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+            margin-bottom: 20px;
+        }
+
+        .avatar img {
+            border-radius: 50%;
+            border: 4px solid var(--accent);
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+            width: 130px;
+            height: 130px;
+            object-fit: cover;
+            background-color: #000;
         }
 
         .dialogue-box {
@@ -129,7 +138,6 @@
 
         .item-btn:hover { background: #475569; border-color: var(--text-main); color: var(--text-main); }
 
-        /* Formulario de Acusación */
         #acusacion-form {
             display: none;
             flex-direction: column;
@@ -159,7 +167,9 @@
     </header>
 
     <div id="screen">
-        <div class="avatar">🦇🐱</div>
+        <div class="avatar" id="avatar-container">
+            <img src="https://placehold.co/130x130/1e1b4b/facc15?text=Clue" alt="Clue">
+        </div>
         <div class="dialogue-box" id="main-text">
             Ha ocurrido un crimen en la mansión. El jarrón de diamantes ha sido destruido. Eres el detective encargado de interrogar a los felinos, inspeccionar las habitaciones y encontrar al culpable.
         </div>
@@ -188,13 +198,13 @@
 </div>
 
 <script>
-    // 1. Datos del Juego
+    // 1. Datos del Juego (Aquí están las imágenes web dinámicas)
     const personajes = [
-        { id: "Bruno", icono: "🦇🐈‍⬛", desc: "El Vigilante" },
-        { id: "Alfredo", icono: "🤵🐈", desc: "El Mayordomo Tuxedo" },
-        { id: "Damian", icono: "😾", desc: "El Rebelde" },
-        { id: "Espejo", icono: "🙀", desc: "El Caricaturesco" },
-        { id: "Selina", icono: "🐈‍⬛💎", desc: "La Escurridiza" }
+        { id: "Bruno", icono: '<img src="https://placehold.co/130x130/000000/facc15?text=Bruno" alt="Bruno">', desc: "El Vigilante" },
+        { id: "Alfredo", icono: '<img src="https://placehold.co/130x130/1e293b/ffffff?text=Alfredo" alt="Alfredo">', desc: "El Mayordomo" },
+        { id: "Damian", icono: '<img src="https://placehold.co/130x130/ef4444/ffffff?text=Damian" alt="Damian">', desc: "El Rebelde" },
+        { id: "Espejo", icono: '<img src="https://placehold.co/130x130/a855f7/ffffff?text=Espejo" alt="Espejo">', desc: "El Caricaturesco" },
+        { id: "Selina", icono: '<img src="https://placehold.co/130x130/020617/facc15?text=Selina" alt="Selina">', desc: "La Escurridiza" }
     ];
     const locaciones = ["Sala", "Cocina", "Comedor", "Dormitorio", "Cuarto Prohibido"];
     const armas = ["Candelabro", "Daga", "Tubo de Plomo", "Revólver", "Cuerda"];
@@ -205,27 +215,25 @@
 
     // 2. Inicializar Partida
     function iniciarJuego() {
-        // Seleccionar el crimen real al azar
         crimenReal = {
             culpable: personajes[Math.floor(Math.random() * personajes.length)].id,
             lugar: locaciones[Math.floor(Math.random() * locaciones.length)],
             arma: armas[Math.floor(Math.random() * armas.length)]
         };
 
-        // Distribuir 1 arma aleatoria por cuarto
         let armasMezcladas = [...armas].sort(() => 0.5 - Math.random());
         locaciones.forEach((loc, index) => {
             distribucionArmas[loc] = armasMezcladas[index];
         });
 
-        console.log("Shhh... Solución secreta:", crimenReal); // Para que tú como dev lo veas en la consola
+        console.log("Solución secreta para el desarrollador:", crimenReal); 
         generarSelects();
         generarBotones();
     }
 
     // 3. Lógica de UI
     const screenText = document.getElementById("main-text");
-    const avatar = document.querySelector(".avatar");
+    const avatar = document.getElementById("avatar-container");
 
     function mostrarPanel(tipo) {
         document.getElementById("panel-inspeccionar").style.display = "none";
@@ -234,15 +242,15 @@
         document.getElementById("controls").style.display = "none";
 
         if (tipo === 'inspeccionar') {
-            avatar.innerHTML = "🚪";
+            avatar.innerHTML = '<img src="https://placehold.co/130x130/334155/ffffff?text=Mapa" alt="Mapa">';
             screenText.innerHTML = "¿Qué habitación deseas investigar?";
             document.getElementById("panel-inspeccionar").style.display = "grid";
         } else if (tipo === 'interrogar') {
-            avatar.innerHTML = "🐾";
+            avatar.innerHTML = '<img src="https://placehold.co/130x130/475569/ffffff?text=Gatos" alt="Sospechosos">';
             screenText.innerHTML = "¿A qué gato sospechoso vas a presionar?";
             document.getElementById("panel-interrogar").style.display = "grid";
         } else if (tipo === 'acusar') {
-            avatar.innerHTML = "🚨";
+            avatar.innerHTML = '<img src="https://placehold.co/130x130/ef4444/ffffff?text=Policia" alt="Acusar">';
             screenText.innerHTML = "Arma tu deducción. Si fallas, el culpable escapará.";
             document.getElementById("acusacion-form").style.display = "flex";
         }
@@ -253,20 +261,21 @@
         document.getElementById("panel-interrogar").style.display = "none";
         document.getElementById("acusacion-form").style.display = "none";
         document.getElementById("controls").style.display = "grid";
-        avatar.innerHTML = "🦇🐱";
+        avatar.innerHTML = '<img src="https://placehold.co/130x130/1e1b4b/facc15?text=Clue" alt="Clue">';
         screenText.innerHTML = "Continúa con tu investigación, detective.";
     }
 
     // 4. Mecánicas de Inspección
     function inspeccionar(lugar) {
         const armaEncontrada = distribucionArmas[lugar];
-        let mensaje = `Al revisar cuidadosamente ${lugar}, encuentras <b>${armaEncontrada}</b> oculta.`;
+        let mensaje = `Al revisar cuidadosamente <b>${lugar}</b>, encuentras el <b>${armaEncontrada}</b> oculto.`;
         
         if (lugar === crimenReal.lugar) {
             mensaje += `<br><br><span style="color:#facc15;">¡PISTA VITAL! Hay marcas de garras y un olor a pólvora quemada. Esta es definitivamente la escena del crimen.</span>`;
         }
 
-        avatar.innerHTML = "🔎";
+        // Muestra una imagen dinámica del cuarto
+        avatar.innerHTML = `<img src="https://placehold.co/130x130/0f172a/facc15?text=${lugar}" alt="${lugar}">`;
         screenText.innerHTML = mensaje;
         setTimeout(volverAlInicio, 4000);
     }
@@ -274,10 +283,9 @@
     // 5. Mecánicas de Interrogatorio
     function interrogar(idGato) {
         const gato = personajes.find(p => p.id === idGato);
-        avatar.innerHTML = gato.icono;
+        avatar.innerHTML = gato.icono; // Inyecta la imagen del gato
         
         if (idGato === crimenReal.culpable) {
-            // Diálogo del culpable (miente o se pone nervioso)
             const mentiras = [
                 "¡Yo estaba afilando mis uñas! No sé nada de ninguna escena del crimen.",
                 "*Se lame la pata nervioso* El servicio es difícil... a veces ocurren accidentes.",
@@ -286,11 +294,9 @@
             ];
             screenText.innerHTML = `<b>${gato.id}:</b> "${mentiras[Math.floor(Math.random() * mentiras.length)]}"`;
         } else {
-            // Diálogo de inocente (da una pista real del diccionario de armas)
-            // Busca un cuarto al azar que no sea donde está su propia arma (por lógica)
             const cuartoPista = locaciones[Math.floor(Math.random() * locaciones.length)];
             const armaPista = distribucionArmas[cuartoPista];
-            screenText.innerHTML = `<b>${gato.id}:</b> "Yo no fui. Pero mis ojos lo ven todo... vi que <b>${armaPista}</b> estaba escondida en <b>${cuartoPista}</b>."`;
+            screenText.innerHTML = `<b>${gato.id}:</b> "Yo no fui. Pero mis ojos lo ven todo... vi que el <b>${armaPista}</b> estaba escondido en la <b>${cuartoPista}</b>."`;
         }
         setTimeout(volverAlInicio, 5000);
     }
@@ -304,10 +310,10 @@
         document.getElementById("acusacion-form").style.display = "none";
 
         if (cul === crimenReal.culpable && arm === crimenReal.arma && lug === crimenReal.lugar) {
-            avatar.innerHTML = "🏆";
+            avatar.innerHTML = '<img src="https://placehold.co/130x130/22c55e/ffffff?text=Victoria" alt="Victoria">';
             screenText.innerHTML = `<h2 style="color:#22c55e;">¡CASO CERRADO!</h2>¡Brillante deducción! Descubriste que <b>${cul}</b> fue el culpable en <b>${lug}</b> utilizando <b>${arm}</b>.`;
         } else {
-            avatar.innerHTML = "❌";
+            avatar.innerHTML = '<img src="https://placehold.co/130x130/ef4444/ffffff?text=Derrota" alt="Derrota">';
             screenText.innerHTML = `<h2 style="color:#ef4444;">VEREDICTO INCORRECTO</h2>Te has equivocado. El asesino real era <b>${crimenReal.culpable}</b> usando <b>${crimenReal.arma}</b> en <b>${crimenReal.lugar}</b>. <br>El culpable ha escapado.`;
         }
     }
@@ -342,7 +348,7 @@
         locaciones.forEach(l => sLug.innerHTML += `<option value="${l}">${l}</option>`);
     }
 
-    // Iniciar
+    // Iniciar el simulador
     iniciarJuego();
 </script>
 
